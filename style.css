@@ -503,10 +503,16 @@ body {
 
 /* Invoice Header */
 .inv-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  overflow: hidden;
   margin-bottom: 32px;
+}
+
+.inv-logo {
+  float: left;
+}
+
+.inv-title-block {
+  float: right;
 }
 
 .inv-logo img {
@@ -548,16 +554,22 @@ body {
 
 /* Info Section */
 .inv-info-section {
-  display: flex;
-  justify-content: space-between;
+  overflow: hidden;
   margin-bottom: 28px;
-  gap: 20px;
+}
+
+.inv-info-section>div:first-child {
+  float: left;
+  width: 45%;
+}
+
+.inv-meta-table {
+  float: right;
+  width: 320px;
 }
 
 .inv-from,
-.inv-bill-to {
-  flex: 1;
-}
+.inv-bill-to {}
 
 .inv-from-name,
 .inv-bill-to-label {
@@ -586,10 +598,7 @@ body {
   white-space: pre-line;
 }
 
-.inv-meta-table {
-  flex: 1;
-  max-width: 320px;
-}
+
 
 .inv-meta-row {
   display: flex;
@@ -675,12 +684,12 @@ body {
 
 /* Totals */
 .inv-totals {
-  display: flex;
-  justify-content: flex-end;
+  overflow: hidden;
   margin-bottom: 40px;
 }
 
 .inv-totals-table {
+  float: right;
   width: 280px;
 }
 
