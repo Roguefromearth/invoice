@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice Generator — Saransh Sharma</title>
+  <meta name="description"
+    content="Professional invoice generator with live preview, PDF download, and multi-currency support.">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+
+<body>
+  <div class="app-container">
+
+    <!-- ===== EDIT PANEL ===== -->
+    <aside class="edit-panel">
+      <div class="panel-header">
+        <div class="icon">📄</div>
+        <h1>Invoice Editor</h1>
+      </div>
+
+      <!-- Currency -->
+      <div class="form-section">
+        <div class="section-title"><span class="sec-icon">💱</span> Currency</div>
+        <div class="currency-toggle">
+          <button class="currency-btn active" data-cur="EUR" id="btn-eur">€ EUR</button>
+          <button class="currency-btn" data-cur="USD" id="btn-usd">$ USD</button>
+        </div>
+      </div>
+
+      <!-- Logo -->
+      <div class="form-section">
+        <div class="section-title"><span class="sec-icon">🖼️</span> Logo</div>
+        <div class="logo-upload-area">
+          <div class="upload-icon">🖼️</div>
+          <div class="upload-text">Click to upload logo</div>
+          <input type="file" id="logo-input" accept="image/*">
+        </div>
+        <button class="remove-logo-btn">✕ Remove Logo</button>
+      </div>
+
+      <!-- Invoice Details -->
+      <div class="form-section">
+        <div class="section-title"><span class="sec-icon">📋</span> Invoice Details</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="input-title" value="INVOICE">
+          </div>
+          <div class="form-group">
+            <label>Invoice #</label>
+            <input type="text" id="input-number" value="201">
+          </div>
+        </div>
+      </div>
+
+      <!-- From -->
+      <div class="form-section">
+        <div class="section-title"><span class="sec-icon">👤</span> From</div>
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="input-from-name" value="Saransh Sharma">
+        </div>
+        <div class="form-group">
+          <label>Address</label>
+          <textarea id="input-from-address" rows="2">Romain-Rolland-Str. 69
+13089 Berlin</textarea>
+        </div>
+      </div>
+
+      <!-- Bill To -->
+      <div class="form-section">
+        <div class="section-title"><span class="sec-icon">🏢</span> Bill To</div>
+        <div class="form-group">
+          <label>Client Name</label>
+          <input type="text" id="input-bill-to-name" value="RISE FX GmbH">
+        </div>
+        <div class="form-group">
+          <label>Client Address</label>
+          <textarea id="input-bill-to-address" rows="2">Schlesische Str. 28
+10997 Berlin</textarea>
+        </div>
+      </div>
+
+      <!-- Dates & Tax Info -->
+      <div class="form-section">
+        <div class="section-title"><span class="sec-icon">📅</span> Dates & Tax Info</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="input-date" value="2022-09-01">
+          </div>
+          <div class="form-group">
+            <label>Due Date</label>
+            <input type="date" id="input-due-date" value="2022-09-15">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tax Office</label>
+            <input type="text" id="input-tax-office" value="Pankow, Berlin">
+          </div>
+          <div class="form-group">
+            <label>Tax Number</label>
+            <input type="text" id="input-tax-number" value="431/ 261/ 58104">
+          </div>
+        </div>
+      </div>
+
+      <!-- Column Headers -->
+      <div class="form-section">
+        <div class="section-title"><span class="sec-icon">🏷️</span> Column Headers</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Column 1</label>
+            <input type="text" id="input-col-item" value="Item">
+          </div>
+          <div class="form-group">
+            <label>Column 2</label>
+            <input type="text" id="input-col-qty" value="Days">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Column 3</label>
+            <input type="text" id="input-col-rate" value="Daily Rate">
+          </div>
+          <div class="form-group">
+            <label>Column 4</label>
+            <input type="text" id="input-col-amount" value="Amount" disabled>
+          </div>
+        </div>
+      </div>
+
+      <!-- Line Items -->
+      <div class="form-section">
+        <div class="section-title"><span class="sec-icon">📝</span> Line Items</div>
+        <div class="line-items-editor" id="line-items-container"></div>
+        <button class="add-item-btn" id="add-item-btn">+ Add Line Item</button>
+      </div>
+
+      <!-- Tax -->
+      <div class="form-section">
+        <div class="section-title"><span class="sec-icon">🧮</span> Tax</div>
+        <div class="tax-row">
+          <label>Tax Rate (%)</label>
+          <input type="number" id="input-tax-percent" min="0" max="100" step="0.5" value="0">
+        </div>
+      </div>
+
+      <!-- Bank Details -->
+      <div class="form-section">
+        <div class="section-title"><span class="sec-icon">🏦</span> Bank Details</div>
+        <div class="form-group">
+          <label>Bank Name</label>
+          <input type="text" id="input-bank-name" value="Taunus Sparkasse">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>IBAN</label>
+            <input type="text" id="input-bank-iban" value="DE67512500000055479925">
+          </div>
+          <div class="form-group">
+            <label>BIC</label>
+            <input type="text" id="input-bank-bic" value="HELADEF1TSK">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Account Holder</label>
+          <input type="text" id="input-bank-holder" value="Saransh Sharma">
+        </div>
+      </div>
+
+      <!-- PayPal -->
+      <div class="form-section">
+        <div class="section-title"><span class="sec-icon">💳</span> PayPal</div>
+        <div class="form-group">
+          <label>PayPal Email (leave blank to hide)</label>
+          <input type="email" id="input-paypal-email" placeholder="your@email.com">
+        </div>
+      </div>
+
+      <!-- Terms -->
+      <div class="form-section">
+        <div class="section-title"><span class="sec-icon">📃</span> Terms</div>
+        <div class="form-group">
+          <textarea id="input-terms"
+            rows="3">I charge no tax, because I have a small business and I succumb the §19 Kleinunternehmerregelung</textarea>
+        </div>
+      </div>
+
+      <!-- Download -->
+      <button class="download-btn" id="download-btn">📄 Download PDF</button>
+    </aside>
+
+    <!-- ===== PREVIEW PANEL ===== -->
+    <main class="preview-panel">
+      <div class="invoice-paper" id="invoice-paper">
+
+        <!-- Header -->
+        <div class="inv-header">
+          <div class="inv-logo" id="inv-logo">
+            <div class="inv-logo-placeholder">No Logo</div>
+          </div>
+          <div class="inv-title-block">
+            <div class="inv-title" id="inv-title">INVOICE</div>
+            <div class="inv-number" id="inv-number"># 201</div>
+          </div>
+        </div>
+
+        <!-- Info Section -->
+        <div class="inv-info-section">
+          <div>
+            <div class="inv-from">
+              <div class="inv-from-name" id="inv-from-name">Saransh Sharma</div>
+              <div class="inv-from-addr" id="inv-from-addr">Romain-Rolland-Str. 69
+                13089 Berlin</div>
+            </div>
+            <div class="inv-bill-to" style="margin-top:20px;">
+              <div class="inv-bill-to-label">Bill To:</div>
+              <div class="inv-bill-to-name" id="inv-bill-to-name">RISE FX GmbH</div>
+              <div class="inv-bill-to-addr" id="inv-bill-to-addr">Schlesische Str. 28
+                10997 Berlin</div>
+            </div>
+          </div>
+          <div class="inv-meta-table">
+            <div class="inv-meta-row">
+              <span class="inv-meta-label">Date:</span>
+              <span class="inv-meta-value" id="inv-date">Sep 1, 2022</span>
+            </div>
+            <div class="inv-meta-row">
+              <span class="inv-meta-label">Tax Office:</span>
+              <span class="inv-meta-value" id="inv-tax-office">Pankow, Berlin</span>
+            </div>
+            <div class="inv-meta-row">
+              <span class="inv-meta-label">Due Date:</span>
+              <span class="inv-meta-value" id="inv-due-date">Sep 15, 2022</span>
+            </div>
+            <div class="inv-meta-row">
+              <span class="inv-meta-label">Tax Number:</span>
+              <span class="inv-meta-value" id="inv-tax-number">431/ 261/ 58104</span>
+            </div>
+            <div class="inv-balance-row">
+              <span class="inv-balance-label">Balance Due:</span>
+              <span class="inv-balance-value" id="inv-balance-due">€3,000.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <table class="inv-table">
+          <thead>
+            <tr>
+              <th id="inv-th-item">Item</th>
+              <th id="inv-th-qty">Days</th>
+              <th id="inv-th-rate">Daily Rate</th>
+              <th id="inv-th-amount">Amount</th>
+            </tr>
+          </thead>
+          <tbody id="inv-table-body">
+            <tr>
+              <td>Motion Design for Project - Blue Beetle (From 22nd August to 31st August)</td>
+              <td>8</td>
+              <td>€375.00</td>
+              <td>€3,000.00</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Totals -->
+        <div class="inv-totals">
+          <div class="inv-totals-table">
+            <div class="inv-total-row">
+              <span class="inv-total-label">Subtotal:</span>
+              <span class="inv-total-value" id="inv-subtotal">€3,000.00</span>
+            </div>
+            <div class="inv-total-row">
+              <span class="inv-total-label" id="inv-tax-label">Tax (0%):</span>
+              <span class="inv-total-value" id="inv-tax-amount">€0.00</span>
+            </div>
+            <div class="inv-total-row final">
+              <span class="inv-total-label">Total:</span>
+              <span class="inv-total-value" id="inv-total">€3,000.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bank Details -->
+        <div class="inv-bank-section">
+          <div class="inv-bank-title">Bank Details:</div>
+          <div class="inv-bank-details" id="inv-bank-details">
+            Bank - Taunus Sparkasse<br>
+            IBAN - DE67512500000055479925<br>
+            BIC - HELADEF1TSK<br>
+            Name - Saransh Sharma
+          </div>
+        </div>
+
+        <!-- PayPal -->
+        <div class="inv-paypal-section" id="inv-paypal-section" style="display:none;">
+          <div class="inv-paypal-title">PayPal:</div>
+          <div class="inv-paypal-email" id="inv-paypal-email"></div>
+        </div>
+
+        <!-- Terms -->
+        <div class="inv-terms-section">
+          <div class="inv-terms-title">Terms:</div>
+          <div class="inv-terms-text" id="inv-terms-text">I charge no tax, because I have a small business and I succumb
+            the §19 Kleinunternehmerregelung</div>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+</body>
+
+</html>
