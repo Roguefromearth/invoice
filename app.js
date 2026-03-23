@@ -276,26 +276,81 @@
 
     try {
       const element = $('.invoice-paper');
-      const opt = {
-        margin: [10, 0, 10, 0],
-        filename: `Invoice_${state.invoiceNumber}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      };
 
-      const blob = await html2pdf().set(opt).from(element).outputPdf('blob');
-      const url = URL.createObjectURL(blob);
+      // Step 1: Capture the invoice as a canvas
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        letterRendering: true,
+        scrollY: -window.scrollY,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
+        backgroundColor: '#ffffff',
+      });
+
+      // Step 2: Convert canvas to image data
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+      // Step 3: Create PDF with jsPDF
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+
+      // Scale image to fit A4 width with padding
+      const margin = 5;
+      const usableWidth = pdfWidth - margin * 2;
+      const ratio = usableWidth / canvasWidth;
+      const scaledHeight = canvasHeight * ratio;
+
+      // If content exceeds one page, handle multi-page
+      if (scaledHeight <= pdfHeight - margin * 2) {
+        pdf.addImage(imgData, 'JPEG', margin, margin, usableWidth, scaledHeight);
+      } else {
+        // Multi-page: slice the canvas into page-sized chunks
+        const pageContentHeight = (pdfHeight - margin * 2) / ratio;
+        let yOffset = 0;
+        let page = 0;
+
+        while (yOffset < canvasHeight) {
+          if (page > 0) pdf.addPage();
+
+          const sliceCanvas = document.createElement('canvas');
+          const sliceHeight = Math.min(pageContentHeight, canvasHeight - yOffset);
+          sliceCanvas.width = canvasWidth;
+          sliceCanvas.height = sliceHeight;
+          const ctx = sliceCanvas.getContext('2d');
+          ctx.drawImage(canvas, 0, yOffset, canvasWidth, sliceHeight, 0, 0, canvasWidth, sliceHeight);
+
+          const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.95);
+          const sliceScaledHeight = sliceHeight * ratio;
+          pdf.addImage(sliceData, 'JPEG', margin, margin, usableWidth, sliceScaledHeight);
+
+          yOffset += sliceHeight;
+          page++;
+        }
+      }
+
+      // Step 4: Trigger download
+      const pdfBlob = pdf.output('blob');
+      const url = URL.createObjectURL(pdfBlob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `Invoice_${state.invoiceNumber}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
     } catch (err) {
       console.error('PDF generation error:', err);
-      alert('Error generating PDF. Please try again.');
+      alert('Error generating PDF: ' + err.message);
     }
 
     btn.classList.remove('downloading');
